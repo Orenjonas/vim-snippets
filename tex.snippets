@@ -1,0 +1,220 @@
+# Snippets copied from and inspired by https://www.jishuwen.com/d/2IVH?fbclid=IwAR1UnCw3lZDKYw7TiC46ul2QGUu28zVebq3xE4xxwKEXhpNLk2toGSEnObY
+
+global !p
+
+# Modified create_table from UltiSnips tex snippets
+def create_matrix(snip):
+	rows = snip.buffer[snip.line].split('x')[0]
+	cols = snip.buffer[snip.line].split('x')[1]
+
+	int_val = lambda string: int(''.join(s for s in string if s.isdigit()))
+	
+	rows = int_val(rows)
+	cols = int_val(cols)
+
+	offset = cols + 1
+	old_spacing = snip.buffer[snip.line][:snip.buffer[snip.line].rfind('\t') + 1]
+	
+	snip.buffer[snip.line] = ''
+	
+	final_str = old_spacing + "\\begin{align*}\n"
+	final_str += old_spacing + "\\begin{${1:bmatrix*}}\n" #{|" + "|".join(['$' + str(i + 1) for i in range(1, cols+1)]) + "|}\n"
+
+	for i in range(rows):
+		final_str += old_spacing + '\t'
+		final_str += " & ".join(['$' + str(i * cols + j + offset) for j in range(cols)])
+
+		final_str += " \\\\\\\n"
+
+	final_str += old_spacing + "\\end{$1}\n"
+	final_str += old_spacing + "\\end{align*}$0\n"
+
+	snip.expand_anon(final_str)
+
+# create math context
+texMathZones = ['texMathZone'+x for x in ['A', 'AS', 'B', 'BS', 'C',
+'CS', 'D', 'DS', 'E', 'ES', 'F', 'FS', 'G', 'GS', 'H', 'HS', 'I', 'IS',
+'J', 'JS', 'K', 'KS', 'L', 'LS', 'DS', 'V', 'W', 'X', 'Y', 'Z']]
+
+texIgnoreMathZones = ['texMathText']
+
+texMathZoneIds = vim.eval('map('+str(texMathZones)+", 'hlID(v:val)')")
+texIgnoreMathZoneIds = vim.eval('map('+str(texIgnoreMathZones)+", 'hlID(v:val)')")
+
+ignore = texIgnoreMathZoneIds[0]
+
+def math():
+	synstackids = vim.eval("synstack(line('.'), col('.') - (col('.')>=2 ? 1 : 0))")
+	try:
+		first = next(
+            i for i in reversed(synstackids)
+            if i in texIgnoreMathZoneIds or i in texMathZoneIds
+        )
+		return first != ignore
+	except StopIteration:
+		return False
+endglobal
+
+pre_expand "create_matrix(snip)"
+snippet "mat(\d+)x(\d+)" "Generate table of *width* by *height*" r  
+endsnippet
+
+# INLINE MATH
+# ===========
+snippet mk "Math" wA
+$${1}$`!p
+if t[2] and t[2][0] not in [',', '.', '?', '-', ' ']:
+    snip.rv = ' '
+else:
+    snip.rv = ''
+`$2
+endsnippet
+
+# SUBSCRIPT
+# =========
+context "math()"
+snippet '([A-Za-z}](?<!tr))(\d)' "auto subscript" wrA
+`!p snip.rv = match.group(1)`_`!p snip.rv = match.group(2)`
+endsnippet
+
+context "math()"
+snippet '([A-Za-z])_(\d\d)' "auto subscript2" wrA
+`!p snip.rv = match.group(1)`_{`!p snip.rv = match.group(2)`}
+endsnippet
+
+# SUPERSCRIPT
+# ============
+context "math()"
+snippet sqr "^2" iA
+^2
+endsnippet
+
+context "math()"
+snippet cb "^3" iA
+^3
+endsnippet
+
+context "math()"
+snippet compl "complement" iA
+^{c}
+endsnippet
+
+snippet td "superscript" iA
+^{$1}$0
+endsnippet
+
+# FRACTIONS
+# =========
+context "math()"
+snippet '((\d+)|(\d*)(\\)?([A-Za-z]+)((\^|_)(\{\d+\}|\d))*)//' "Fraction" wrA
+\\frac{`!p snip.rv = match.group(1)`}{$1}$0
+endsnippet
+
+priority 1000
+context "math()"
+snippet '^.*\)//' "() Fraction" wrA
+`!p
+stripped = match.string[:-1]
+depth = 0
+i = len(stripped) - 1
+while True:
+    if stripped[i] == ')': depth += 1
+    if stripped[i] == '(': depth -= 1
+    if depth == 0: break;
+    i -= 1
+snip.rv = stripped[0:i] + "\\frac{" + stripped[i+1:-1] + "}"
+`{$1}$0
+endsnippet
+
+priority -1
+context "math()"
+snippet // "Fraction" iA
+\\frac{${VISUAL}$1}{$2}$0
+endsnippet
+
+# snippet / "Fraction" iA
+# \\frac{${VISUAL}}{$1}$0
+# endsnippet
+
+
+# VECTOR
+# ======
+priority -1
+snippet \vec "Vectorize" iA
+\\vec{${VISUAL}$1}$0
+endsnippet
+
+# EVALUATE SYMPY EXPRESSIONS
+# ==========================
+snippet sympy "sympy block " w
+sympy $1 sympy$0
+endsnippet
+
+priority 10000
+snippet 'sympy(.*)sympy' "evaluate sympy" wr
+`!p
+from sympy import *
+x, y, z, t = symbols('x y z t')
+k, m, n = symbols('k m n', integer=True)
+f, g, h = symbols('f g h', cls=Function)
+init_printing()
+snip.rv = eval('latex(' + match.group(1).replace('\\', '') \
+    .replace('^', '**') \
+    .replace('{', '(') \
+    .replace('}', ')') + ')')
+`
+endsnippet
+
+
+# OVERLINE/UNDERLINE
+# ==================
+
+priority 10
+context "math()"
+snippet "bar" "bar" riA
+\overline{$1}$0
+endsnippet
+
+priority 100
+context "math()"
+snippet "([a-zA-Z])bar" "bar" riA
+\overline{`!p snip.rv=match.group(1)`}
+endsnippet
+
+priority 10
+context "math()"
+snippet "hat" "hat" riA
+\hat{$1}$0
+endsnippet
+
+priority 100
+context "math()"
+snippet "([a-zA-Z])hat" "hat" riA
+\hat{`!p snip.rv=match.group(1)`}
+endsnippet
+
+
+# VECTOR
+# ======
+
+# type ,. or ., after a word, to convert it to a vector
+snippet "(\\?\w+)(,\.|\.,)" "Vector postfix" riA
+\vec{`!p snip.rv=match.group(1)`}
+endsnippet
+
+context "math()"
+snippet "diff" "Differentiate" riA
+\frac{\partial $1}{\partial $2}$0
+endsnippet
+
+priority 100
+context "math()"
+snippet "([a-zA-Z]+)(txt|xx)" "wrap text" riA
+\text{`!p snip.rv=match.group(1)`}
+endsnippet
+
+priority 10
+context "math()"
+snippet "(txt|xx)" "Differentiate" riA
+\text{${VISUAL}$1}$0
+endsnippet
