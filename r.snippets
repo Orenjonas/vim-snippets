@@ -1,0 +1,38 @@
+# library()
+snippet li
+	library(${1:})
+# endsnippet
+# If Condition
+snippet if
+	if(${1:condition}){
+	    ${2:}
+	}
+snippet el
+	else {
+	    ${1:}
+	}
+snippet wh
+	while(${1:condition}){
+	    ${2:}
+	}
+# For Loop
+snippet for
+	for(${1:i} in ${2:range}){
+	    ${3:}
+	}
+# Function
+snippet fun
+	${1:funname} <- function(${2:})
+	{
+	    ${3:}
+	}
+# repeat
+snippet re
+	repeat{
+	    ${2:}
+	    if(${1:condition}) break
+	}
+
+# snippet "(par|mfrow)" "Combine plots" iR
+# par(mfrow=c($1,$2))$0
+# endsnippet

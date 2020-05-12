@@ -55,8 +55,10 @@ def math():
 		return False
 endglobal
 
+priority 1000
+context "math()"
 pre_expand "create_matrix(snip)"
-snippet "mat(\d+)x(\d+)" "Generate table of *width* by *height*" r  
+snippet "mat(\d+)x(\d+)" "Generate table of *width* by *height*" rA
 endsnippet
 
 # INLINE MATH
@@ -73,13 +75,30 @@ endsnippet
 # SUBSCRIPT
 # =========
 context "math()"
-snippet '([A-Za-z}](?<!tr))(\d)' "auto subscript" wrA
+snippet '([A-Za-z}](?<!tr)(?<!mat)(?<!mat\dx))(\d)' "auto subscript" wrA
 `!p snip.rv = match.group(1)`_`!p snip.rv = match.group(2)`
 endsnippet
 
+priority -1
 context "math()"
 snippet '([A-Za-z])_(\d\d)' "auto subscript2" wrA
 `!p snip.rv = match.group(1)`_{`!p snip.rv = match.group(2)`}
+endsnippet
+
+snippet 'ii' "_i" wrA
+_i
+endsnippet
+
+# VECTOR NORM ( | )
+# ==============
+context "math()"
+snippet 'vert' "absolute value" wrA
+\lvert $1 \rvert
+endsnippet
+
+context "math()"
+snippet 'Vert' "Norm" wrA
+\lVert $1 \rVert
 endsnippet
 
 # SUPERSCRIPT
@@ -126,9 +145,9 @@ snip.rv = stripped[0:i] + "\\frac{" + stripped[i+1:-1] + "}"
 `{$1}$0
 endsnippet
 
-priority -1
+priority -100
 context "math()"
-snippet // "Fraction" iA
+snippet // "Fraction" 
 \\frac{${VISUAL}$1}{$2}$0
 endsnippet
 
@@ -215,6 +234,37 @@ endsnippet
 
 priority 10
 context "math()"
-snippet "(txt|xx)" "Differentiate" riA
+snippet "(txt|xx)" "Wrap text" riA
 \text{${VISUAL}$1}$0
+endsnippet
+
+priority 100
+snippet "([a-zA-Z]+)(ttxt|xtt)" "wrap text in typewriter font" riA
+\texttt{`!p snip.rv=match.group(1)`}
+endsnippet
+
+priority 10
+snippet "(ttxt|xtt)" "Wrap text in typewriter font" riA
+\texttt{${VISUAL}$1}$0
+endsnippet
+
+# Greek letters
+context "math()"
+snippet "afa" "Alpha" riA
+\alpha
+endsnippet
+
+context "math()"
+snippet "lda" "Lambda" riA
+\lambda
+endsnippet
+
+context "math()"
+snippet "tta" "Theta" riA
+\theta
+endsnippet
+
+context "math()"
+snippet "bta" "Beta" riA
+\beta
 endsnippet
