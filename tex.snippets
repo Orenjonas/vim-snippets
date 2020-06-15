@@ -61,6 +61,15 @@ pre_expand "create_matrix(snip)"
 snippet "mat(\d+)x(\d+)" "Generate table of *width* by *height*" rA
 endsnippet
 
+# Begin align environment
+snippet '^bal ' "Begin align environment" wriA
+\begin{align*}
+$1
+\end{align*}
+$0
+endsnippet
+
+
 # INLINE MATH
 # ===========
 snippet mk "Math" wA
@@ -104,7 +113,7 @@ endsnippet
 # SUPERSCRIPT
 # ============
 context "math()"
-snippet sqr "^2" iA
+snippet srt "^2" iA
 ^2
 endsnippet
 
@@ -226,6 +235,10 @@ snippet "diff" "Differentiate" riA
 \frac{\partial $1}{\partial $2}$0
 endsnippet
 
+# TEXT
+# ====
+
+# Normal text
 priority 100
 context "math()"
 snippet "([a-zA-Z]+)(txt|xx)" "wrap text" riA
@@ -238,15 +251,26 @@ snippet "(txt|xx)" "Wrap text" riA
 \text{${VISUAL}$1}$0
 endsnippet
 
+# Typewriter
 priority 100
 snippet "([a-zA-Z]+)(ttxt|xtt)" "wrap text in typewriter font" riA
 \texttt{`!p snip.rv=match.group(1)`}
 endsnippet
 
 priority 10
-snippet "(ttxt|xtt)" "Wrap text in typewriter font" riA
+snippet "(ttxt|xtt)" "Wrap text in typewriter font" rA
 \texttt{${VISUAL}$1}$0
 endsnippet
+
+# Italics
+# snippet "([a-zA-Z]+)(tit)" "wrap text in italics" ri
+snippet "([a-zA-Z]+|)(tit)" "wrap text in italics" ri
+\textit{`!p snip.rv=match.group(1)`${VISUAL}}$0
+endsnippet
+
+# snippet "(tit)" "Wrap text in italics" r
+# \textit{${VISUAL}$1}$0
+# endsnippet
 
 # Greek letters
 context "math()"
